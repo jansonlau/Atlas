@@ -5,9 +5,10 @@ import { SearchResponse } from '@/types'
 
 interface CombinedResultsProps {
   data: SearchResponse
+  onQueryClick?: (query: string) => void
 }
 
-export default function CombinedResults({ data }: CombinedResultsProps) {
+export default function CombinedResults({ data, onQueryClick }: CombinedResultsProps) {
   const [activeTab, setActiveTab] = useState<'answer' | 'sources' | 'web'>('answer')
   const [searchPage, setSearchPage] = useState(1)
   const [relatedPage, setRelatedPage] = useState(1)
@@ -177,6 +178,29 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
                       <p className="text-gray-700 leading-relaxed text-base">{data.answer}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Related Queries Section */}
+          {data.relatedQueries && data.relatedQueries.length > 0 && onQueryClick && (
+            <section className="mb-8">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Related Queries</h3>
+                <div className="space-y-3">
+                  {data.relatedQueries.map((query, index) => (
+                    <button
+                      key={index}
+                      onClick={() => onQueryClick(query)}
+                      className="w-full flex items-center justify-between p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
+                    >
+                      <span className="text-gray-700 group-hover:text-gray-900">{query}</span>
+                      <svg className="w-5 h-5 text-blue-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </button>
+                  ))}
                 </div>
               </div>
             </section>

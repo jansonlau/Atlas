@@ -36,6 +36,10 @@ export default function Home() {
     }
   }, [])
 
+  const handleQueryClick = useCallback((query: string) => {
+    handleSearch(query)
+  }, [handleSearch])
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <main className="flex-1 flex flex-col justify-center">
@@ -52,7 +56,7 @@ export default function Home() {
 
           <ErrorBoundary>
             {loading && <LoadingSkeleton />}
-            {results && !loading && <CombinedResults data={results} />}
+            {results && !loading && <CombinedResults data={results} onQueryClick={handleQueryClick} />}
           </ErrorBoundary>
         </div>
       </main>

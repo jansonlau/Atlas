@@ -27,6 +27,7 @@ export interface SearchResponse {
   citations?: Citation[]
   results?: SearchResult[]
   similar?: SimilarResult[]
+  relatedQueries?: string[]
   error?: string
 }
 
