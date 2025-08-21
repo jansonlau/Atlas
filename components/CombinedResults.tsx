@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { SearchResponse } from '@/types'
 
 interface CombinedResultsProps {
@@ -7,6 +8,8 @@ interface CombinedResultsProps {
 }
 
 export default function CombinedResults({ data }: CombinedResultsProps) {
+  const [activeTab, setActiveTab] = useState<'answer' | 'sources'>('answer')
+
   if (data.error) {
     return (
       <div className="max-w-4xl mx-auto">
@@ -25,93 +28,140 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Answer Section */}
-      {data.answer && (
-        <section className="mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">AI Answer</h2>
-                <div className="prose max-w-none">
-                  <p className="text-gray-700 leading-relaxed text-base">{data.answer}</p>
-                </div>
-              </div>
-            </div>
-            
-            {data.citations && data.citations.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-600 mb-3">Sources</h3>
-                <div className="grid gap-2">
-                  {data.citations.map((citation, index) => (
-                    <a
-                      key={index}
-                      href={citation.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                      {citation.title || citation.url}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+      {/* Tab Navigation */}
+      {data.answer && data.citations && data.citations.length > 0 && (
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('answer')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'answer'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Answer
+              </button>
+              <button
+                onClick={() => setActiveTab('sources')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                  activeTab === 'sources'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Sources
+                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                  {data.citations.length}
+                </span>
+              </button>
+            </nav>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* Search Results Section */}
-      {data.results && data.results.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Web Results</h2>
-          <div className="space-y-4">
-            {data.results.map((result, index) => (
-              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3">
+      {/* Answer Tab Content */}
+      {activeTab === 'answer' && (
+        <>
+          {/* Answer Section */}
+          {data.answer && (
+            <section className="mb-8">
+              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-gray-500">{result.domain}</span>
-                      {result.score && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          Score: {result.score.toFixed(2)}
-                        </span>
-                      )}
+                    <h2 className="text-lg font-semibold text-gray-900 mb-2">AI Answer</h2>
+                    <div className="prose max-w-none">
+                      <p className="text-gray-700 leading-relaxed text-base">{data.answer}</p>
                     </div>
-                    <h3 className="font-medium mb-2">
-                      <a
-                        href={result.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-lg leading-tight"
-                      >
-                        {result.title}
-                      </a>
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {result.author && `${result.author} • `}
-                      {result.published_date && `${result.published_date} • `}
-                      {result.url}
-                    </p>
-                    
-                    {result.highlights && result.highlights.length > 0 && (
-                      <div className="space-y-2">
-                        {result.highlights.map((highlight, hIndex) => (
-                          <p key={hIndex} className="text-sm text-gray-700 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
-                            {highlight}
-                          </p>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
+              </div>
+            </section>
+          )}
+
+          {/* Search Results Section */}
+          {data.results && data.results.length > 0 && (
+            <section>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Web Results</h2>
+              <div className="space-y-4">
+                {data.results.map((result, index) => (
+                  <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-gray-500">{result.domain}</span>
+                          {result.score && (
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                              Score: {result.score.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-medium mb-2">
+                          <a
+                            href={result.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-lg leading-tight"
+                          >
+                            {result.title}
+                          </a>
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {result.author && `${result.author} • `}
+                          {result.published_date && `${result.published_date} • `}
+                          {result.url}
+                        </p>
+                        
+                        {result.highlights && result.highlights.length > 0 && (
+                          <div className="space-y-2">
+                            {result.highlights.map((highlight, hIndex) => (
+                              <p key={hIndex} className="text-sm text-gray-700 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
+                                {highlight}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
+
+      {/* Sources Tab Content */}
+      {activeTab === 'sources' && data.citations && data.citations.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sources</h2>
+          <div className="space-y-4">
+            {data.citations.map((citation, index) => (
+              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <a
+                  href={citation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-2 text-blue-600 hover:text-blue-800">
+                        {citation.title || citation.url}
+                      </h3>
+                      <p className="text-sm text-gray-600">{citation.url}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
+                </a>
               </article>
             ))}
           </div>
