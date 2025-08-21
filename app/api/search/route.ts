@@ -12,8 +12,6 @@ export async function POST(request: NextRequest) {
       exclude_domains = '',
       recency_days = 0,
       num_results = 10,
-      highlights_per_url = 2,
-      include_text = true,
     } = body
 
     if (!q || typeof q !== 'string') {
@@ -24,8 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse CSV strings
-    const include = include_domains ? include_domains.split(',').map(d => d.trim()).filter(Boolean) : null
-    const exclude = exclude_domains ? exclude_domains.split(',').map(d => d.trim()).filter(Boolean) : null
+    const include = include_domains ? include_domains.split(',').map((d: string) => d.trim()).filter(Boolean) : null
+    const exclude = exclude_domains ? exclude_domains.split(',').map((d: string) => d.trim()).filter(Boolean) : null
 
     // Calculate start date for recency filter
     let startDate: string | null = null
@@ -45,17 +43,8 @@ export async function POST(request: NextRequest) {
     if (exclude) options.exclude_domains = exclude
     if (startDate) options.start_published_date = startDate
 
-    // Configure highlights
-    const highlights = {
-      highlights_per_url: Math.max(0, highlights_per_url),
-      num_sentences: 2,
-      query: q,
-    }
-
     // Perform search
     const results = await exa.searchAndContents(q, {
-      text: include_text,
-      highlights,
       summary: true,
       ...options,
     })
@@ -64,12 +53,7 @@ export async function POST(request: NextRequest) {
     const items = (results.results || []).map((result: any) => ({
       url: result.url || '',
       title: result.title || '',
-      author: result.author || '',
-      published_date: result.published_date || '',
       domain: result.domain || '',
-      score: result.score || 0,
-      highlights: result.highlights || [],
-      text: result.text || '',
       favicon: result.favicon || '',
       summary: result.summary || '',
     }))

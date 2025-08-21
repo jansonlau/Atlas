@@ -5,7 +5,8 @@ const exa = new Exa(process.env.EXA_API_KEY!)
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, q = '' } = await request.json()
+    const body = await request.json()
+    const { url, q = '', num_results = 8 } = body
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json(
@@ -14,35 +15,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const similar = await exa.findSimilarAndContents(url, {
-      text: true,
-      highlights: {
-        highlights_per_url: 2,
-        num_sentences: 2,
-        query: q || 'similar',
-      },
+    // Find similar pages
+    const results = await exa.findSimilarAndContents(url, {
       summary: true,
-      num_results: 10,
+      num_results: Math.max(1, Math.min(20, num_results)),
       exclude_source_domain: true,
     })
 
-    const items = (similar.results || []).map((result: any) => ({
+    // Normalize results
+    const items = (results.results || []).map((result: any) => ({
       url: result.url || '',
       title: result.title || '',
       domain: result.domain || '',
-      highlights: result.highlights || [],
       favicon: result.favicon || '',
       summary: result.summary || '',
     }))
 
     return NextResponse.json({
       url,
-      similar: items,
+      query: q,
+      results: items,
     })
   } catch (error) {
     console.error('Similar API error:', error)
     return NextResponse.json(
-      { error: 'Failed to find similar pages' },
+      { error: 'Similar search failed' },
       { status: 500 }
     )
   }

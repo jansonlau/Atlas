@@ -8,10 +8,6 @@ export async function POST(request: NextRequest) {
   try {
     const { q } = await request.json()
 
-    // Add caching headers for better performance
-    const response = NextResponse.next()
-    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
-
     if (!q || typeof q !== 'string') {
       return NextResponse.json(
         { error: 'Query parameter "q" is required' },
@@ -21,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Default containers
     let answerText: string | null = null
-    let citations: Array<{ url: string; title: string }> = []
+    let citations: Array<{ url: string; title: string; summary: string }> = []
     let searchResults: any[] = []
     let similarResults: any[] = []
     let relatedQueries: string[] = []
@@ -33,21 +29,16 @@ export async function POST(request: NextRequest) {
       citations = (answerResponse.citations || []).map((citation: any) => ({
         url: citation.url || '',
         title: citation.title || '',
+        summary: citation.title || '', // Use title as summary since Exa doesn't provide summary for citations
       }))
     } catch (error) {
       console.error('Answer API error:', error)
       // Non-fatal; we can still show search results
     }
 
-    // Fetch search results with text and highlights
+    // Fetch search results
     try {
       const searchResponse = await exa.searchAndContents(q, {
-        text: true,
-        highlights: {
-          highlights_per_url: 2,
-          num_sentences: 2,
-          query: q,
-        },
         summary: true,
         type: 'auto',
         num_results: 10,
@@ -56,29 +47,15 @@ export async function POST(request: NextRequest) {
       searchResults = (searchResponse.results || []).map((result: any) => ({
         url: result.url || '',
         title: result.title || '',
-        author: result.author || '',
-        published_date: result.published_date || '',
         domain: result.domain || '',
-        score: result.score || 0,
-        highlights: result.highlights || [],
-        text: result.text || '',
         favicon: result.favicon || '',
         summary: result.summary || '',
       }))
-
-      // Sort search results by score (highest first)
-      searchResults.sort((a, b) => (b.score || 0) - (a.score || 0))
 
       // Fetch similar results from the first search result
       if (searchResults.length > 0) {
         try {
           const similarResponse = await exa.findSimilarAndContents(searchResults[0].url, {
-            text: true,
-            highlights: {
-              highlights_per_url: 2,
-              num_sentences: 2,
-              query: q,
-            },
             summary: true,
             num_results: 8,
             exclude_source_domain: true,
@@ -88,7 +65,6 @@ export async function POST(request: NextRequest) {
             url: result.url || '',
             title: result.title || '',
             domain: result.domain || '',
-            highlights: result.highlights || [],
             favicon: result.favicon || '',
             summary: result.summary || '',
           }))
