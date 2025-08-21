@@ -37,29 +37,25 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="bg-slate-50 text-slate-900 min-h-screen">
-      <div className="max-w-6xl mx-auto p-6">
-        <header className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">🔦 Exa Spotlight</h1>
-          <a 
-            href="https://docs.exa.ai/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-sm text-blue-600 underline"
-          >
-            Exa Docs
-          </a>
-        </header>
+    <div className="min-h-screen bg-white flex flex-col">
+      <main className="flex-1 flex flex-col justify-center">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Title */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">Atlas</h1>
+          </div>
 
-        <section className="bg-white rounded-2xl shadow p-6 mb-6">
-          <SearchForm onSearch={handleSearch} loading={loading} />
-        </section>
+          {/* Search Section */}
+          <div className="mb-12">
+            <SearchForm onSearch={handleSearch} loading={loading} />
+          </div>
 
-        <ErrorBoundary>
-          {loading && <LoadingSkeleton />}
-          {results && !loading && <CombinedResults data={results} />}
-        </ErrorBoundary>
-      </div>
+          <ErrorBoundary>
+            {loading && <LoadingSkeleton />}
+            {results && !loading && <CombinedResults data={results} />}
+          </ErrorBoundary>
+        </div>
+      </main>
     </div>
   )
 }
