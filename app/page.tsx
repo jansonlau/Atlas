@@ -5,6 +5,7 @@ import SearchForm from '@/components/SearchForm'
 import CombinedResults from '@/components/CombinedResults'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import SettingsMenu from '@/components/SettingsMenu'
 import { SearchResponse } from '@/types'
 
 export default function Home() {
@@ -12,6 +13,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [hasEverHadResults, setHasEverHadResults] = useState(false)
   const [currentQuery, setCurrentQuery] = useState<string>('')
+  
+  // Settings state
+  const [searchType, setSearchType] = useState('auto')
+  const [contentType, setContentType] = useState('all')
+  const [numResults, setNumResults] = useState(10)
+  const [recencyDays, setRecencyDays] = useState(0)
+  const [language, setLanguage] = useState('auto')
+  const [includeDomains, setIncludeDomains] = useState<string[]>([])
+  const [excludeDomains, setExcludeDomains] = useState<string[]>([])
 
   const handleSearch = useCallback(async (query: string) => {
     setLoading(true)
@@ -23,7 +33,16 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ q: query }),
+        body: JSON.stringify({ 
+          q: query,
+          searchType,
+          contentType,
+          numResults,
+          recencyDays,
+          language,
+          includeDomains,
+          excludeDomains
+        }),
       })
       
       if (!response.ok) {
@@ -38,11 +57,40 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [searchType, contentType, numResults, recencyDays, language, includeDomains, excludeDomains])
 
   const handleQueryClick = useCallback((query: string) => {
     handleSearch(query)
   }, [handleSearch])
+
+  // Settings handlers
+  const handleSearchTypeChange = useCallback((newSearchType: string) => {
+    setSearchType(newSearchType)
+  }, [])
+
+  const handleContentTypeChange = useCallback((newContentType: string) => {
+    setContentType(newContentType)
+  }, [])
+
+  const handleNumResultsChange = useCallback((newNumResults: number) => {
+    setNumResults(newNumResults)
+  }, [])
+
+  const handleRecencyChange = useCallback((newRecencyDays: number) => {
+    setRecencyDays(newRecencyDays)
+  }, [])
+
+  const handleLanguageChange = useCallback((newLanguage: string) => {
+    setLanguage(newLanguage)
+  }, [])
+
+  const handleIncludeDomainsChange = useCallback((newIncludeDomains: string[]) => {
+    setIncludeDomains(newIncludeDomains)
+  }, [])
+
+  const handleExcludeDomainsChange = useCallback((newExcludeDomains: string[]) => {
+    setExcludeDomains(newExcludeDomains)
+  }, [])
 
   // Check if we should show the bottom search layout
   const shouldShowBottomSearch = hasEverHadResults
@@ -85,6 +133,22 @@ export default function Home() {
               <div className="flex-1">
                 <SearchForm onSearch={handleSearch} loading={loading} variant="inline" />
               </div>
+              <SettingsMenu
+                onSearchTypeChange={handleSearchTypeChange}
+                onContentTypeChange={handleContentTypeChange}
+                onNumResultsChange={handleNumResultsChange}
+                onRecencyChange={handleRecencyChange}
+                onLanguageChange={handleLanguageChange}
+                onIncludeDomainsChange={handleIncludeDomainsChange}
+                onExcludeDomainsChange={handleExcludeDomainsChange}
+                currentSearchType={searchType}
+                currentContentType={contentType}
+                currentNumResults={numResults}
+                recencyDays={recencyDays}
+                language={language}
+                includeDomains={includeDomains}
+                excludeDomains={excludeDomains}
+              />
             </div>
           </div>
         </div>

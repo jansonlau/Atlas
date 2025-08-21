@@ -6,7 +6,16 @@ const exa = new Exa(process.env.EXA_API_KEY!)
 
 export async function POST(request: NextRequest) {
   try {
-    const { q } = await request.json()
+    const { 
+      q, 
+      searchType = 'auto',
+      contentType = 'all',
+      numResults = 10,
+      recencyDays = 0,
+      language = 'auto',
+      includeDomains = [],
+      excludeDomains = []
+    } = await request.json()
 
     if (!q || typeof q !== 'string') {
       return NextResponse.json(
@@ -21,6 +30,56 @@ export async function POST(request: NextRequest) {
     let searchResults: any[] = []
     let similarResults: any[] = []
     let relatedQueries: string[] = []
+
+    // Build search options based on parameters
+    const searchOptions: any = {
+      summary: true,
+      num_results: Math.min(Math.max(numResults, 1), 25) // Limit between 1-25
+    }
+
+    // Set search type
+    if (searchType && searchType !== 'auto') {
+      searchOptions.type = searchType
+    }
+
+    // Set content type filters
+    if (contentType && contentType !== 'all') {
+      switch (contentType) {
+        case 'news':
+          searchOptions.category = 'news'
+          break
+        case 'academic':
+          searchOptions.category = 'academic'
+          break
+        case 'blogs':
+          searchOptions.category = 'blogs'
+          break
+        case 'technical':
+          searchOptions.category = 'technical'
+          break
+      }
+    }
+
+    // Set language filter
+    if (language && language !== 'auto') {
+      searchOptions.language = language
+    }
+
+    // Set recency filter
+    if (recencyDays > 0) {
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - recencyDays)
+      searchOptions.start_published_date = startDate.toISOString().split('T')[0] // YYYY-MM-DD format
+    }
+
+    // Add domain filters
+    if (includeDomains && includeDomains.length > 0) {
+      searchOptions.include_domains = includeDomains
+    }
+
+    if (excludeDomains && excludeDomains.length > 0) {
+      searchOptions.exclude_domains = excludeDomains
+    }
 
     // Fetch an answer with citations
     try {
@@ -38,11 +97,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch search results
     try {
-      const searchResponse = await exa.searchAndContents(q, {
-        summary: true,
-        type: 'auto',
-        num_results: 10,
-      })
+      const searchResponse = await exa.searchAndContents(q, searchOptions)
 
       searchResults = (searchResponse.results || []).map((result: any) => ({
         url: result.url || '',
@@ -50,16 +105,29 @@ export async function POST(request: NextRequest) {
         domain: result.domain || '',
         favicon: result.favicon || '',
         summary: result.summary || '',
+        published_date: result.published_date || null,
+        category: result.category || null,
+        score: result.score || null
       }))
 
       // Fetch similar results from the first search result
       if (searchResults.length > 0) {
         try {
-          const similarResponse = await exa.findSimilarAndContents(searchResults[0].url, {
+          const similarOptions: any = {
             summary: true,
             num_results: 8,
-            exclude_source_domain: true,
-          })
+            exclude_source_domain: true
+          }
+
+          // Apply domain filters to similar search if specified
+          if (includeDomains && includeDomains.length > 0) {
+            similarOptions.include_domains = includeDomains
+          }
+          if (excludeDomains && excludeDomains.length > 0) {
+            similarOptions.exclude_domains = excludeDomains
+          }
+
+          const similarResponse = await exa.findSimilarAndContents(searchResults[0].url, similarOptions)
 
           similarResults = (similarResponse.results || []).map((result: any) => ({
             url: result.url || '',
@@ -67,6 +135,9 @@ export async function POST(request: NextRequest) {
             domain: result.domain || '',
             favicon: result.favicon || '',
             summary: result.summary || '',
+            published_date: result.published_date || null,
+            category: result.category || null,
+            score: result.score || null
           }))
         } catch (error) {
           console.error('Similar API error:', error)
@@ -118,6 +189,13 @@ export async function POST(request: NextRequest) {
       results: searchResults,
       similar: similarResults,
       relatedQueries,
+      searchType,
+      contentType,
+      numResults: searchResults.length,
+      recencyDays,
+      language,
+      includeDomains,
+      excludeDomains
     })
   } catch (error) {
     console.error('Query API error:', error)
