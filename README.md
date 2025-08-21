@@ -1,82 +1,121 @@
-# 🔦 Exa Spotlight Demo
+# Atlas - Exa Spotlight Demo (Next.js)
 
-A minimal but *novel* FastAPI web app that showcases Exa’s unique retrieval:
-- **Semantic search + contents extraction** with domain & recency filters
-- **On-click “Find similar”** to branch into neighborhoods around any source
-- **Ask Exa** — direct Q&A with citations via Exa’s `/answer`
+A modern Next.js application demonstrating Exa search, similarity, and answer endpoints.
 
-No build step required. Runs locally with Python.
+## Features
 
----
+- **Search**: Query Exa with optional domain filters and recency windows
+- **Similar Pages**: Find pages similar to a provided URL
+- **Question Answering**: Use Exa to answer natural language questions with citations
+- **Combined Query**: Single search box that returns both answers and search results
+- **Modern UI**: Built with Next.js, React, and Tailwind CSS
 
-## 1) Setup
+## Tech Stack
 
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **API**: Exa AI Search API
+- **Deployment**: Vercel-ready
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Exa API key (get one at [exa.ai](https://exa.ai))
+
+### Installation
+
+1. Clone the repository:
 ```bash
-python3 -m venv .venv && source .venv/bin/activate 
-pip install -r requirements.txt
-cp .env.example .env
-# paste your key into .env:
-#   EXA_API_KEY=xxxxxxxxxxxxxxxx
+git clone <repository-url>
+cd Atlas
 ```
 
-> You can create an API key from your Exa dashboard: https://dashboard.exa.ai/  (Docs: https://docs.exa.ai/)
-
-## 2) Run
-
+2. Install dependencies:
 ```bash
-uvicorn app:app --reload
+npm install
+# or
+yarn install
 ```
 
-Open http://127.0.0.1:8000 in your browser.
-
-## 3) How it works
-
-- **/search** → Calls `exa.search_and_contents(query, text=True, highlights=...)` and renders:
-  - Clean extracted text (truncated)
-  - Query-relevant highlights
-  - Filters: `include_domains`, `exclude_domains`, and `start_published_date` for recency
-
-- **Find similar** → For any result URL, hits `exa.find_similar_and_contents(url, text=True, exclude_source_domain=True)` to explore a *semantic neighborhood* of pages around that source.
-
-- **/answer** → Calls `exa.answer(question, text=True)` and prints the generated answer with a **list of citations** (each links out to the source).
-
-Under the hood we lean on Exa’s embeddings-based retrieval and its contents API to avoid brittle scraping. The Answer endpoint pairs Exa search + an LLM to return a synthesized answer with sources.
-
-## 4) Why this is novel/useful
-
-1. **Neighborhood-first discovery** — Clicking *Find similar* on any result behaves like “open the semantic cluster around this page,” which users quickly fall in love with for research and competitive intel.
-2. **Faceted semantic search** — Domain & recency filters + highlights let users shape the slice of the web they care about (e.g., “last 7 days on official docs only”).
-3. **Trust by default** — The Q&A view always shows clickable citations, making it safe to use in daily work.
-
-## 5) Files
-
-```
-.
-├── app.py                 # FastAPI app (all routes)
-├── requirements.txt
-├── .env.example
-├── templates/
-│   ├── index.html         # UI (Tailwind + HTMX)
-│   └── partials/
-│       ├── results.html   # results list
-│       ├── similar.html   # similar links section
-│       ├── answer.html    # answer + citations
-│       └── error.html
-└── static/
-    └── style.css          # optional overrides
+3. Set up environment variables:
+Create a `.env.local` file in the root directory:
+```bash
+EXA_API_KEY=your_exa_api_key_here
 ```
 
-## 6) Customization ideas
+4. Run the development server:
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-- Add prebuilt **Websets** (curated domain lists) as dropdowns and pass them as `include_domains`.
-- Toggle **recency** presets (24h / 7d / 30d).
-- Add a **monitor** page that saves queries and re-runs them on-demand to check for fresh results.
-- Turn on **streaming answers** with `exa.stream_answer(...)` for token-by-token updates.
-- Experiment with **highlights**: change `highlights_per_url`, `num_sentences`, or the `query` used for highlighting.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 7) References
+## API Endpoints
 
-- Python SDK & common calls: https://github.com/exa-labs/exa-py  (see examples)  
-- Search & Contents: https://docs.exa.ai/reference/search  
-- Find Similar: https://docs.exa.ai/reference/find-similar-links  
-- Answer endpoint: https://docs.exa.ai/reference/answer
+The application provides the following API routes:
+
+- `POST /api/query` - Combined search and answer endpoint
+- `POST /api/search` - Advanced search with filters
+- `POST /api/answer` - Question answering
+- `POST /api/similar` - Find similar pages
+- `GET /api/health` - Health check
+
+## Project Structure
+
+```
+Atlas/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # React components
+│   ├── SearchForm.tsx     # Search input form
+│   └── CombinedResults.tsx # Results display
+├── public/               # Static assets
+├── .env.local           # Environment variables
+├── next.config.js       # Next.js configuration
+├── package.json         # Dependencies
+├── tailwind.config.js   # Tailwind CSS configuration
+└── tsconfig.json        # TypeScript configuration
+```
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+### Environment Variables
+
+- `EXA_API_KEY` - Your Exa API key (required)
+
+## Deployment
+
+This application is ready to deploy on Vercel:
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Add your `EXA_API_KEY` environment variable in Vercel
+4. Deploy!
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
