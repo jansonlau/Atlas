@@ -280,7 +280,7 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                         {result.highlights && result.highlights.length > 0 && (
                           <div className="space-y-2">
                             {result.highlights.map((highlight, hIndex) => (
-                              <p key={hIndex} className="text-sm text-gray-700 bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
+                              <p key={hIndex} className="text-sm text-gray-700 p-3 rounded bg-gray-50">
                                 {highlight}
                               </p>
                             ))}
