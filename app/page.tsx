@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import SearchForm from '@/components/SearchForm'
 import CombinedResults from '@/components/CombinedResults'
+import LoadingSkeleton from '@/components/LoadingSkeleton'
+import ErrorBoundary from '@/components/ErrorBoundary'
+import { SearchResponse } from '@/types'
 
 export default function Home() {
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<SearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
     setLoading(true)
     try {
       const response = await fetch('/api/query', {
@@ -31,7 +34,7 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
@@ -52,14 +55,10 @@ export default function Home() {
           <SearchForm onSearch={handleSearch} loading={loading} />
         </section>
 
-        {loading && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-            <p className="mt-2 text-slate-600">Searching...</p>
-          </div>
-        )}
-
-        {results && !loading && <CombinedResults data={results} />}
+        <ErrorBoundary>
+          {loading && <LoadingSkeleton />}
+          {results && !loading && <CombinedResults data={results} />}
+        </ErrorBoundary>
       </div>
     </div>
   )

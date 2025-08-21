@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
 
 interface SearchFormProps {
   onSearch: (query: string) => void
@@ -9,6 +10,22 @@ interface SearchFormProps {
 
 export default function SearchForm({ onSearch, loading }: SearchFormProps) {
   const [query, setQuery] = useState('')
+
+  // Debounce search to prevent excessive API calls
+  const debouncedSearch = useDebouncedCallback(
+    (searchQuery: string) => {
+      if (searchQuery.trim() && !loading) {
+        onSearch(searchQuery.trim())
+      }
+    },
+    500 // 500ms delay
+  )
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setQuery(value)
+    debouncedSearch(value)
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,7 +39,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
       <input
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={handleInputChange}
         placeholder="Search or ask a question..."
         className="flex-1 rounded-2xl border border-slate-200 p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         disabled={loading}

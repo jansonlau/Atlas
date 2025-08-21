@@ -1,22 +1,9 @@
 'use client'
 
+import { SearchResponse } from '@/types'
+
 interface CombinedResultsProps {
-  data: {
-    question?: string
-    answer?: string
-    citations?: Array<{ url: string; title: string }>
-    results?: Array<{
-      url: string
-      title: string
-      author?: string
-      published_date?: string
-      domain: string
-      score?: number
-      highlights?: string[]
-      text?: string
-    }>
-    error?: string
-  }
+  data: SearchResponse
 }
 
 export default function CombinedResults({ data }: CombinedResultsProps) {

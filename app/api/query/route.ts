@@ -8,6 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     const { q } = await request.json()
 
+    // Add caching headers for better performance
+    const response = NextResponse.next()
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+
     if (!q || typeof q !== 'string') {
       return NextResponse.json(
         { error: 'Query parameter "q" is required' },
