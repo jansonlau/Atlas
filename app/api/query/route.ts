@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
         text: result.text || '',
       }))
 
+      // Sort search results by score (highest first)
+      searchResults.sort((a, b) => (b.score || 0) - (a.score || 0))
+
       // Fetch similar results from the first search result
       if (searchResults.length > 0) {
         try {
