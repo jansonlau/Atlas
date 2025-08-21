@@ -29,11 +29,3 @@ export interface SearchResponse {
   relatedQueries?: string[]
   error?: string
 }
-
-export interface SearchParams {
-  q: string
-  include_domains?: string
-  exclude_domains?: string
-  recency_days?: number
-  num_results?: number
-}
