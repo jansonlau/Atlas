@@ -1,0 +1,18 @@
+
+<div class="mt-2 border-t pt-3">
+  <div class="text-sm font-medium mb-2">Similar links</div>
+  <ul class="space-y-2">
+    {% for s in similar %}
+      <li>
+        <a href="{{ s.url }}" class="text-sm text-blue-700 hover:underline" target="_blank">{{ s.title or s.url }}</a>
+        {% if s.highlights %}
+          <div class="text-xs text-slate-600 mt-1">
+            {% for h in s.highlights[:1] %}
+              <p class="bg-slate-50 border border-slate-200 rounded px-2 py-1">{{ h }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
