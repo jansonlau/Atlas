@@ -29,7 +29,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
           type="text"
           value={query}
           onChange={handleInputChange}
-          placeholder="Ask anything..."
+          placeholder="What do you want to know?"
           className="w-full px-6 py-4 text-lg border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:shadow-md"
           disabled={loading}
           required

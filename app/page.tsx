@@ -47,6 +47,9 @@ export default function Home() {
           {/* Title */}
           <div className="text-center mb-12">
             <h1 className="text-5xl font-bold text-gray-900 mb-4">Atlas</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Understand anything with AI search
+            </p>
           </div>
 
           {/* Search Section */}
