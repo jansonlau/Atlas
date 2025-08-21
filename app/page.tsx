@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <main className="flex-1 flex flex-col justify-center">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="w-full mx-auto px-4 py-8">
           {/* Title */}
           <div className="text-center mb-12">
             <h1 className="text-5xl font-bold text-gray-900 mb-4">Atlas</h1>
