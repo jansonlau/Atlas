@@ -255,11 +255,6 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-xs text-gray-500">{result.domain}</span>
-                          {result.score && (
-                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                              Score: {result.score.toFixed(2)}
-                            </span>
-                          )}
                         </div>
                         <h3 className="font-medium mb-2">
                           <a
