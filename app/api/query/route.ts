@@ -92,94 +92,37 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Generate intelligent related queries using search results analysis
+      // Generate related queries using Exa's search capabilities
       try {
-        // Extract key terms and concepts from search results
-        const allTitles = searchResults.map(r => r.title).join(' ')
-        const allHighlights = searchResults.flatMap(r => r.highlights || []).join(' ')
-        const combinedContent = `${allTitles} ${allHighlights}`.toLowerCase()
+        // Use the search results to generate related queries
+        const queryPrompts = [
+          `What are the best ${q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/i, '').trim()}`,
+          `How to choose ${q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/i, '').trim()}`,
+          `Compare ${q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/i, '').trim()}`,
+          `Top ${q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/i, '').trim()}`,
+          `Guide to ${q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/i, '').trim()}`
+        ]
 
-        // Identify the main topic/entity from the original query
-        const topicKeywords = q.toLowerCase()
-          .replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will|best|top|good|bad/gi, '')
-          .trim()
-          .split(' ')
-          .filter(word => word.length > 2)
-
-        // Generate intelligent queries based on search results analysis
-        const intelligentQueries = []
-
-        // 1. Comparison query - look for competing products/services
-        if (combinedContent.includes('vs') || combinedContent.includes('compare') || combinedContent.includes('alternative')) {
-          intelligentQueries.push(`Compare ${topicKeywords.slice(0, 2).join(' ')} alternatives`)
-        } else {
-          intelligentQueries.push(`What are the best ${topicKeywords.slice(0, 2).join(' ')} alternatives?`)
-        }
-
-        // 2. How-to/guide query
-        intelligentQueries.push(`How to choose the right ${topicKeywords.slice(0, 2).join(' ')}`)
-
-        // 3. Features/benefits query
-        if (combinedContent.includes('feature') || combinedContent.includes('benefit')) {
-          intelligentQueries.push(`Key features of ${topicKeywords.slice(0, 2).join(' ')}`)
-        } else {
-          intelligentQueries.push(`What are the main benefits of ${topicKeywords.slice(0, 2).join(' ')}?`)
-        }
-
-        // 4. Price/cost query
-        if (combinedContent.includes('price') || combinedContent.includes('cost') || combinedContent.includes('budget')) {
-          intelligentQueries.push(`${topicKeywords.slice(0, 2).join(' ')} pricing and cost comparison`)
-        } else {
-          intelligentQueries.push(`How much does ${topicKeywords.slice(0, 2).join(' ')} cost?`)
-        }
-
-        // 5. Problems/issues query
-        if (combinedContent.includes('problem') || combinedContent.includes('issue') || combinedContent.includes('disadvantage')) {
-          intelligentQueries.push(`Common problems with ${topicKeywords.slice(0, 2).join(' ')}`)
-        } else {
-          intelligentQueries.push(`What to avoid when choosing ${topicKeywords.slice(0, 2).join(' ')}`)
-        }
-
-        // Filter and clean queries
-        relatedQueries = intelligentQueries
+        // Filter out queries that are too short or invalid
+        relatedQueries = queryPrompts
           .map(query => query.trim())
-          .filter(query => query.length > 10 && query !== q && !query.includes('undefined'))
+          .filter(query => query.length > 10 && query !== q)
           .slice(0, 5)
 
-        // Enhanced fallback queries based on search context
+        // If we don't have enough queries, add some generic ones
         if (relatedQueries.length < 5) {
-          const contextualFallbacks = [
-            `Top ${topicKeywords[0]} recommendations`,
-            `${topicKeywords[0]} buying guide`,
-            `Best ${topicKeywords[0]} for beginners`,
-            `${topicKeywords[0]} reviews and ratings`,
-            `Latest ${topicKeywords[0]} trends`
-          ].filter(query => !query.includes('undefined'))
-
-          const remainingSlots = 5 - relatedQueries.length
-          relatedQueries = [...relatedQueries, ...contextualFallbacks.slice(0, remainingSlots)]
+          const fallbackQueries = [
+            "What are the key features to consider?",
+            "How do I compare different options?",
+            "What are the pros and cons?",
+            "Which one is the best choice?",
+            "What should I know before deciding?"
+          ]
+          relatedQueries = [...relatedQueries, ...fallbackQueries.slice(0, 5 - relatedQueries.length)]
         }
-
-        // Final cleanup - ensure all queries are valid
-        relatedQueries = relatedQueries.filter(query => 
-          query && 
-          query.length > 10 && 
-          !query.includes('undefined') && 
-          query !== q
-        )
-
       } catch (error) {
-        console.error('Intelligent related queries generation error:', error)
-        
-        // Fallback to simpler but still contextual queries
-        const simpleTopic = q.replace(/what|how|why|when|where|is|are|do|does|can|could|should|would|will/gi, '').trim()
-        relatedQueries = [
-          `Best ${simpleTopic} options`,
-          `How to choose ${simpleTopic}`,
-          `${simpleTopic} comparison guide`,
-          `${simpleTopic} reviews`,
-          `${simpleTopic} buying tips`
-        ].filter(query => query.length > 10 && !query.includes('undefined'))
+        console.error('Related queries generation error:', error)
+        // Non-fatal; we can still show other results
       }
     } catch (error) {
       console.error('Search API error:', error)

@@ -187,7 +187,7 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
           {data.relatedQueries && data.relatedQueries.length > 0 && onQueryClick && (
             <section className="mb-8">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Related Queries</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">You might also want to know</h3>
                 <div className="space-y-3">
                   {data.relatedQueries.map((query, index) => (
                     <button
