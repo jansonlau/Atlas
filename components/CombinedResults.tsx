@@ -12,7 +12,10 @@ interface CombinedResultsProps {
 const Favicon = ({ domain, faviconUrl }: { domain: string; faviconUrl?: string }) => {
   const [error, setError] = useState(false)
 
-  if (error || !faviconUrl) {
+  // If no faviconUrl is provided, use Google's favicon service as fallback
+  const iconUrl = faviconUrl || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+
+  if (error) {
     return (
       <div className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
         <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +27,7 @@ const Favicon = ({ domain, faviconUrl }: { domain: string; faviconUrl?: string }
 
   return (
     <img 
-      src={faviconUrl} 
+      src={iconUrl} 
       alt={`${domain} favicon`}
       className="w-4 h-4 rounded flex-shrink-0"
       onError={() => setError(true)}
@@ -247,10 +250,20 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Favicon domain={citation.url} />
+                        <a
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 truncate max-w-[200px]"
+                        >
+                          {citation.url}
+                        </a>
+                      </div>
                       <h3 className="font-medium mb-2 text-blue-600 hover:text-blue-800">
                         {citation.title || citation.url}
                       </h3>
-                      <p className="text-sm text-gray-600 mb-2">{citation.url}</p>
                       {citation.summary && (
                         <p className="text-sm text-gray-700 line-clamp-2">
                           {citation.summary}
@@ -283,8 +296,15 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Favicon domain={result.domain} faviconUrl={result.favicon} />
-                          <span className="text-xs text-gray-500">{result.domain}</span>
+                          <Favicon domain={result.url} faviconUrl={result.favicon} />
+                          <a
+                            href={result.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 truncate max-w-[200px]"
+                          >
+                            {result.url}
+                          </a>
                         </div>
                         <h3 className="font-medium mb-2">
                           <a
@@ -296,9 +316,6 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                             {result.title}
                           </a>
                         </h3>
-                        <p className="text-sm text-gray-600 mb-3">
-                          {result.url}
-                        </p>
                         
                         {result.summary && (
                           <div className="text-sm text-gray-700 line-clamp-2">
@@ -332,8 +349,15 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Favicon domain={result.domain} faviconUrl={result.favicon} />
-                          <span className="text-xs text-gray-500">{result.domain}</span>
+                          <Favicon domain={result.url} faviconUrl={result.favicon} />
+                          <a
+                            href={result.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 truncate max-w-[200px]"
+                          >
+                            {result.url}
+                          </a>
                         </div>
                         <h3 className="font-medium mb-2">
                           <a
@@ -345,7 +369,7 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                             {result.title}
                           </a>
                         </h3>
-                        <p className="text-sm text-gray-600 mb-3">{result.url}</p>
+
                         
                         {result.summary && (
                           <div className="text-sm text-gray-700 line-clamp-2">

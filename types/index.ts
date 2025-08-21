@@ -15,6 +15,8 @@ export interface Citation {
   url: string
   title: string
   summary: string
+  domain?: string
+  favicon?: string
 }
 
 export interface SimilarResult {
