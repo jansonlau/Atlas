@@ -8,7 +8,11 @@ interface CombinedResultsProps {
 }
 
 export default function CombinedResults({ data }: CombinedResultsProps) {
-  const [activeTab, setActiveTab] = useState<'answer' | 'sources' | 'related'>('answer')
+  const [activeTab, setActiveTab] = useState<'answer' | 'sources' | 'web'>('answer')
+  const [searchPage, setSearchPage] = useState(1)
+  const [relatedPage, setRelatedPage] = useState(1)
+
+  const ITEMS_PER_PAGE = 5
 
   if (data.error) {
     return (
@@ -29,18 +33,87 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
   // Determine which tabs to show
   const hasAnswer = !!data.answer
   const hasSources = data.citations && data.citations.length > 0
-  const hasRelated = data.similar && data.similar.length > 0
+  const hasWebResults = (data.results && data.results.length > 0) || (data.similar && data.similar.length > 0)
+
+  // Pagination calculations
+  const searchResults = data.results || []
+  const relatedResults = data.similar || []
+  const totalSearchPages = Math.ceil(searchResults.length / ITEMS_PER_PAGE)
+  const totalRelatedPages = Math.ceil(relatedResults.length / ITEMS_PER_PAGE)
+  
+  const paginatedSearchResults = searchResults.slice(
+    (searchPage - 1) * ITEMS_PER_PAGE,
+    searchPage * ITEMS_PER_PAGE
+  )
+  const paginatedRelatedResults = relatedResults.slice(
+    (relatedPage - 1) * ITEMS_PER_PAGE,
+    relatedPage * ITEMS_PER_PAGE
+  )
+
+  // Reset pagination when switching tabs
+  const handleTabChange = (tab: 'answer' | 'sources' | 'web') => {
+    setActiveTab(tab)
+    if (tab === 'web') {
+      setSearchPage(1)
+      setRelatedPage(1)
+    }
+  }
+
+  const Pagination = ({ currentPage, totalPages, onPageChange, section }: {
+    currentPage: number
+    totalPages: number
+    onPageChange: (page: number) => void
+    section: string
+  }) => {
+    if (totalPages <= 1) return null
+
+    return (
+      <div className="flex items-center justify-center space-x-2 mt-6">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        
+        <div className="flex space-x-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => onPageChange(page)}
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+        
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
       {/* Tab Navigation */}
-      {(hasAnswer || hasSources || hasRelated) && (
+      {(hasAnswer || hasSources || hasWebResults) && (
         <div className="mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {hasAnswer && (
                 <button
-                  onClick={() => setActiveTab('answer')}
+                  onClick={() => handleTabChange('answer')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === 'answer'
                       ? 'border-blue-500 text-blue-600'
@@ -52,7 +125,7 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
               )}
               {hasSources && (
                 <button
-                  onClick={() => setActiveTab('sources')}
+                  onClick={() => handleTabChange('sources')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
                     activeTab === 'sources'
                       ? 'border-blue-500 text-blue-600'
@@ -65,18 +138,18 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
                   </span>
                 </button>
               )}
-              {hasRelated && (
+              {hasWebResults && (
                 <button
-                  onClick={() => setActiveTab('related')}
+                  onClick={() => handleTabChange('web')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                    activeTab === 'related'
+                    activeTab === 'web'
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  Related
+                  Web
                   <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                    {data.similar?.length}
+                    {(data.results?.length || 0) + (data.similar?.length || 0)}
                   </span>
                 </button>
               )}
@@ -108,13 +181,51 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
               </div>
             </section>
           )}
+        </>
+      )}
 
+      {/* Sources Tab Content */}
+      {activeTab === 'sources' && data.citations && data.citations.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sources</h2>
+          <div className="space-y-4">
+            {data.citations.map((citation, index) => (
+              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <a
+                  href={citation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <h3 className="font-medium mb-2 text-blue-600 hover:text-blue-800">
+                        {citation.title || citation.url}
+                      </h3>
+                      <p className="text-sm text-gray-600">{citation.url}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Web Tab Content */}
+      {activeTab === 'web' && (
+        <section>
           {/* Search Results Section */}
           {data.results && data.results.length > 0 && (
-            <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Web Results</h2>
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Search Results ({searchResults.length} total)
+              </h2>
               <div className="space-y-4">
-                {data.results.map((result, index) => (
+                {paginatedSearchResults.map((result, index) => (
                   <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
@@ -156,80 +267,65 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
                   </article>
                 ))}
               </div>
-            </section>
+              
+              <Pagination
+                currentPage={searchPage}
+                totalPages={totalSearchPages}
+                onPageChange={setSearchPage}
+                section="search"
+              />
+            </div>
           )}
-        </>
-      )}
 
-      {/* Sources Tab Content */}
-      {activeTab === 'sources' && data.citations && data.citations.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sources</h2>
-          <div className="space-y-4">
-            {data.citations.map((citation, index) => (
-              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                <a
-                  href={citation.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <h3 className="font-medium mb-2 text-blue-600 hover:text-blue-800">
-                        {citation.title || citation.url}
-                      </h3>
-                      <p className="text-sm text-gray-600">{citation.url}</p>
-                    </div>
-                    <svg className="w-4 h-4 text-gray-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </div>
-                </a>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Related Tab Content */}
-      {activeTab === 'related' && data.similar && data.similar.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Results</h2>
-          <div className="space-y-4">
-            {data.similar.map((result, index) => (
-              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs text-gray-500">{result.domain}</span>
-                    </div>
-                    <h3 className="font-medium mb-2">
-                      <a
-                        href={result.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 text-lg leading-tight"
-                      >
-                        {result.title}
-                      </a>
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">{result.url}</p>
-                    
-                    {result.highlights && result.highlights.length > 0 && (
-                      <div className="space-y-2">
-                        {result.highlights.map((highlight, hIndex) => (
-                          <p key={hIndex} className="text-sm text-gray-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
-                            {highlight}
-                          </p>
-                        ))}
+          {/* Similar Results Section */}
+          {data.similar && data.similar.length > 0 && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Related Results ({relatedResults.length} total)
+              </h2>
+              <div className="space-y-4">
+                {paginatedRelatedResults.map((result, index) => (
+                  <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-gray-500">{result.domain}</span>
+                        </div>
+                        <h3 className="font-medium mb-2">
+                          <a
+                            href={result.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-lg leading-tight"
+                          >
+                            {result.title}
+                          </a>
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3">{result.url}</p>
+                        
+                        {result.highlights && result.highlights.length > 0 && (
+                          <div className="space-y-2">
+                            {result.highlights.map((highlight, hIndex) => (
+                              <p key={hIndex} className="text-sm text-gray-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
+                                {highlight}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              
+              <Pagination
+                currentPage={relatedPage}
+                totalPages={totalRelatedPages}
+                onPageChange={setRelatedPage}
+                section="related"
+              />
+            </div>
+          )}
         </section>
       )}
 
