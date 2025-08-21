@@ -8,7 +8,7 @@ interface CombinedResultsProps {
 }
 
 export default function CombinedResults({ data }: CombinedResultsProps) {
-  const [activeTab, setActiveTab] = useState<'answer' | 'sources'>('answer')
+  const [activeTab, setActiveTab] = useState<'answer' | 'sources' | 'related'>('answer')
 
   if (data.error) {
     return (
@@ -26,36 +26,60 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
     )
   }
 
+  // Determine which tabs to show
+  const hasAnswer = !!data.answer
+  const hasSources = data.citations && data.citations.length > 0
+  const hasRelated = data.similar && data.similar.length > 0
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* Tab Navigation */}
-      {data.answer && data.citations && data.citations.length > 0 && (
+      {(hasAnswer || hasSources || hasRelated) && (
         <div className="mb-6">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('answer')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'answer'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Answer
-              </button>
-              <button
-                onClick={() => setActiveTab('sources')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === 'sources'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Sources
-                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                  {data.citations.length}
-                </span>
-              </button>
+              {hasAnswer && (
+                <button
+                  onClick={() => setActiveTab('answer')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'answer'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Answer
+                </button>
+              )}
+              {hasSources && (
+                <button
+                  onClick={() => setActiveTab('sources')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                    activeTab === 'sources'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Sources
+                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                    {data.citations?.length}
+                  </span>
+                </button>
+              )}
+              {hasRelated && (
+                <button
+                  onClick={() => setActiveTab('related')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
+                    activeTab === 'related'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  Related
+                  <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+                    {data.similar?.length}
+                  </span>
+                </button>
+              )}
             </nav>
           </div>
         </div>
@@ -162,6 +186,47 @@ export default function CombinedResults({ data }: CombinedResultsProps) {
                     </svg>
                   </div>
                 </a>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Related Tab Content */}
+      {activeTab === 'related' && data.similar && data.similar.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Results</h2>
+          <div className="space-y-4">
+            {data.similar.map((result, index) => (
+              <article key={index} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-gray-500">{result.domain}</span>
+                    </div>
+                    <h3 className="font-medium mb-2">
+                      <a
+                        href={result.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-lg leading-tight"
+                      >
+                        {result.title}
+                      </a>
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">{result.url}</p>
+                    
+                    {result.highlights && result.highlights.length > 0 && (
+                      <div className="space-y-2">
+                        {result.highlights.map((highlight, hIndex) => (
+                          <p key={hIndex} className="text-sm text-gray-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
+                            {highlight}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </article>
             ))}
           </div>

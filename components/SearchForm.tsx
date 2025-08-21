@@ -23,7 +23,7 @@ export default function SearchForm({ onSearch, loading }: SearchFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full max-w-xl mx-auto">
+    <form onSubmit={handleSubmit} className="relative w-full max-w-3xl mx-auto">
       <div className="relative">
         <input
           type="text"

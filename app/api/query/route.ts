@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     let answerText: string | null = null
     let citations: Array<{ url: string; title: string }> = []
     let searchResults: any[] = []
+    let similarResults: any[] = []
 
     // Fetch an answer with citations
     try {
@@ -60,6 +61,32 @@ export async function POST(request: NextRequest) {
         highlights: result.highlights || [],
         text: result.text || '',
       }))
+
+      // Fetch similar results from the first search result
+      if (searchResults.length > 0) {
+        try {
+          const similarResponse = await exa.findSimilarAndContents(searchResults[0].url, {
+            text: true,
+            highlights: {
+              highlights_per_url: 2,
+              num_sentences: 2,
+              query: q,
+            },
+            num_results: 8,
+            exclude_source_domain: true,
+          })
+
+          similarResults = (similarResponse.results || []).map((result: any) => ({
+            url: result.url || '',
+            title: result.title || '',
+            domain: result.domain || '',
+            highlights: result.highlights || [],
+          }))
+        } catch (error) {
+          console.error('Similar API error:', error)
+          // Non-fatal; we can still show other results
+        }
+      }
     } catch (error) {
       console.error('Search API error:', error)
       // Non-fatal; we can still show answer
@@ -70,6 +97,7 @@ export async function POST(request: NextRequest) {
       answer: answerText,
       citations,
       results: searchResults,
+      similar: similarResults,
     })
   } catch (error) {
     console.error('Query API error:', error)

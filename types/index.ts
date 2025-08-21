@@ -14,11 +14,19 @@ export interface Citation {
   title: string
 }
 
+export interface SimilarResult {
+  url: string
+  title: string
+  domain: string
+  highlights?: string[]
+}
+
 export interface SearchResponse {
   question?: string
   answer?: string
   citations?: Citation[]
   results?: SearchResult[]
+  similar?: SimilarResult[]
   error?: string
 }
 
