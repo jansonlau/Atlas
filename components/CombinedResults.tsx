@@ -267,8 +267,6 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                           </a>
                         </h3>
                         <p className="text-sm text-gray-600 mb-3">
-                          {result.author && `${result.author} • `}
-                          {result.published_date && `${result.published_date} • `}
                           {result.url}
                         </p>
                         
