@@ -7,11 +7,14 @@ export interface SearchResult {
   score?: number
   highlights?: string[]
   text?: string
+  summary?: string
+  favicon?: string
 }
 
 export interface Citation {
   url: string
   title: string
+  summary: string
 }
 
 export interface SimilarResult {
@@ -19,6 +22,8 @@ export interface SimilarResult {
   title: string
   domain: string
   highlights?: string[]
+  summary?: string
+  favicon?: string
 }
 
 export interface SearchResponse {

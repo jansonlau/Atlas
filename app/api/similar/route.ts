@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
         num_sentences: 2,
         query: q || 'similar',
       },
+      summary: true,
       num_results: 10,
       exclude_source_domain: true,
     })
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
       title: result.title || '',
       domain: result.domain || '',
       highlights: result.highlights || [],
+      favicon: result.favicon || '',
+      summary: result.summary || '',
     }))
 
     return NextResponse.json({

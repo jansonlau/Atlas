@@ -1,11 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SearchResponse } from '@/types'
 
 interface CombinedResultsProps {
   data: SearchResponse
   onQueryClick?: (query: string) => void
+}
+
+// Favicon component
+const Favicon = ({ domain, faviconUrl }: { domain: string; faviconUrl?: string }) => {
+  const [error, setError] = useState(false)
+
+  if (error || !faviconUrl) {
+    return (
+      <div className="w-4 h-4 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+        </svg>
+      </div>
+    )
+  }
+
+  return (
+    <img 
+      src={faviconUrl} 
+      alt={`${domain} favicon`}
+      className="w-4 h-4 rounded flex-shrink-0"
+      onError={() => setError(true)}
+    />
+  )
 }
 
 export default function CombinedResults({ data, onQueryClick }: CombinedResultsProps) {
@@ -226,7 +250,12 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                       <h3 className="font-medium mb-2 text-blue-600 hover:text-blue-800">
                         {citation.title || citation.url}
                       </h3>
-                      <p className="text-sm text-gray-600">{citation.url}</p>
+                      <p className="text-sm text-gray-600 mb-2">{citation.url}</p>
+                      {citation.summary && (
+                        <p className="text-sm text-gray-700 line-clamp-2">
+                          {citation.summary}
+                        </p>
+                      )}
                     </div>
                     <svg className="w-4 h-4 text-gray-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -254,6 +283,7 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
+                          <Favicon domain={result.domain} faviconUrl={result.favicon} />
                           <span className="text-xs text-gray-500">{result.domain}</span>
                         </div>
                         <h3 className="font-medium mb-2">
@@ -270,13 +300,9 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                           {result.url}
                         </p>
                         
-                        {result.highlights && result.highlights.length > 0 && (
-                          <div className="space-y-2">
-                            {result.highlights.map((highlight, hIndex) => (
-                              <p key={hIndex} className="text-sm text-gray-700 p-3 rounded bg-gray-50">
-                                {highlight}
-                              </p>
-                            ))}
+                        {result.summary && (
+                          <div className="text-sm text-gray-700 line-clamp-2">
+                            {result.summary}
                           </div>
                         )}
                       </div>
@@ -306,6 +332,7 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
+                          <Favicon domain={result.domain} faviconUrl={result.favicon} />
                           <span className="text-xs text-gray-500">{result.domain}</span>
                         </div>
                         <h3 className="font-medium mb-2">
@@ -320,13 +347,9 @@ export default function CombinedResults({ data, onQueryClick }: CombinedResultsP
                         </h3>
                         <p className="text-sm text-gray-600 mb-3">{result.url}</p>
                         
-                        {result.highlights && result.highlights.length > 0 && (
-                          <div className="space-y-2">
-                            {result.highlights.map((highlight, hIndex) => (
-                              <p key={hIndex} className="text-sm text-gray-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
-                                {highlight}
-                              </p>
-                            ))}
+                        {result.summary && (
+                          <div className="text-sm text-gray-700 line-clamp-2">
+                            {result.summary}
                           </div>
                         )}
                       </div>

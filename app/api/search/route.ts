@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     const results = await exa.searchAndContents(q, {
       text: include_text,
       highlights,
+      summary: true,
       ...options,
     })
 
@@ -69,6 +70,8 @@ export async function POST(request: NextRequest) {
       score: result.score || 0,
       highlights: result.highlights || [],
       text: result.text || '',
+      favicon: result.favicon || '',
+      summary: result.summary || '',
     }))
 
     return NextResponse.json({
