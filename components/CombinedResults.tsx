@@ -9,6 +9,35 @@ interface CombinedResultsProps {
   currentQuery?: string
 }
 
+// Function to extract hyperlinks from text and return clean text + links
+const extractHyperlinks = (text: string) => {
+  // Regex to match markdown-style links: [text](url)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+  const links: Array<{ text: string; url: string }> = []
+  
+  // Extract all links
+  let match
+  while ((match = linkRegex.exec(text)) !== null) {
+    links.push({
+      text: match[1],
+      url: match[2]
+    })
+  }
+  
+  // Remove all links from the text and clean up extra spaces and parentheses
+  let cleanText = text.replace(linkRegex, '')
+  
+  // Remove empty parentheses and clean up extra spaces
+  cleanText = cleanText
+    .replace(/\s*\(\s*\)/g, '') // Remove empty parentheses with optional spaces
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/\s+\./g, '.') // Remove spaces before periods
+    .replace(/\s+,/g, ',') // Remove spaces before commas
+    .trim() // Remove leading/trailing spaces
+  
+  return { cleanText, links }
+}
+
 // Favicon component
 const Favicon = ({ domain, faviconUrl }: { domain: string; faviconUrl?: string }) => {
   const [error, setError] = useState(false)
@@ -211,7 +240,32 @@ export default function CombinedResults({ data, onQueryClick, currentQuery }: Co
                   <div className="flex-1">
                     <h2 className="text-lg font-semibold text-gray-900 mb-2">AI Answer</h2>
                     <div className="prose max-w-none">
-                      <p className="text-gray-700 leading-relaxed text-base">{data.answer}</p>
+                      {(() => {
+                        const { cleanText, links } = extractHyperlinks(data.answer)
+                        return (
+                          <>
+                            <p className="text-gray-700 leading-relaxed text-base mb-4">{cleanText}</p>
+                            {links.length > 0 && (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">Sources:</h4>
+                                <div className="space-y-1">
+                                  {links.map((link, index) => (
+                                    <a
+                                      key={index}
+                                      href={link.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                                    >
+                                      {link.text}
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>
